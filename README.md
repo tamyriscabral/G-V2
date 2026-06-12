@@ -43,5 +43,5 @@
 ### codigo.c
   *  No caso de AST_PROGRAMA, adiciona também gerar(no->filho2) e gerar(no->filho3)
 
-## Makefile
+### Makefile
   * Alterado somente os nomes dos arquivos para os novos nomes g-v2.

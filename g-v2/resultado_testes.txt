@@ -1,0 +1,328 @@
+========================================
+TESTE: testeacessovetor.g
+========================================
+.data
+v: .space 40
+newline: .asciiz "\n"
+.text
+.globl main
+main:
+li $t0, 5
+li $t1, 2
+sll $t1, $t1, 2
+la $t2, v
+add $t2, $t2, $t1
+sw $t0, 0($t2)
+li $v0, 10
+syscall
+
+
+========================================
+TESTE: testecompleto.g
+========================================
+.data
+dados: .space 40
+x: .word 0
+y: .word 0
+a: .word 0
+b: .word 0
+newline: .asciiz "\n"
+.text
+.globl main
+soma:
+addiu $sp, $sp, -4
+sw $ra, 0($sp)
+sw $a0, a
+sw $a1, b
+lw $t0, a
+lw $t1, b
+add $t2, $t0, $t1
+move $v0, $t2
+j L0
+L0:
+lw $ra, 0($sp)
+addiu $sp, $sp, 4
+jr $ra
+dobro:
+addiu $sp, $sp, -4
+sw $ra, 0($sp)
+sw $a0, x
+lw $t3, x
+lw $t4, x
+add $t5, $t3, $t4
+move $v0, $t5
+j L1
+L1:
+lw $ra, 0($sp)
+addiu $sp, $sp, 4
+jr $ra
+main:
+li $t6, 5
+sw $t6, x
+li $t7, 10
+sw $t7, y
+la $t8, x
+move $a0, $t8
+la $t9, y
+move $a1, $t9
+lw $t10, x
+move $v0, $t10
+j L-1
+li $t11, 0
+sll $t11, $t11, 2
+la $t12, dados
+add $t12, $t12, $t11
+sw $t-1, 0($t12)
+li $t13, 0
+sll $t13, $t13, 2
+la $t14, dados
+add $t14, $t14, $t13
+lw $t15, 0($t14)
+move $a0, $t15
+li $v0, 1
+syscall
+la $a0, newline
+li $v0, 4
+syscall
+li $t16, 7
+move $a0, $t16
+li $t17, 7
+move $v0, $t17
+j L-1
+move $a0, $t-1
+li $v0, 1
+syscall
+la $a0, newline
+li $v0, 4
+syscall
+li $v0, 10
+syscall
+
+
+========================================
+TESTE: testeescritavetor.g
+========================================
+.data
+v: .space 20
+newline: .asciiz "\n"
+.text
+.globl main
+main:
+li $t0, 42
+li $t1, 0
+sll $t1, $t1, 2
+la $t2, v
+add $t2, $t2, $t1
+sw $t0, 0($t2)
+li $t3, 0
+sll $t3, $t3, 2
+la $t4, v
+add $t4, $t4, $t3
+lw $t5, 0($t4)
+move $a0, $t5
+li $v0, 1
+syscall
+li $v0, 10
+syscall
+
+
+========================================
+TESTE: testefuncao+param.g
+========================================
+.data
+a: .word 0
+b: .word 0
+newline: .asciiz "\n"
+.text
+.globl main
+soma:
+addiu $sp, $sp, -4
+sw $ra, 0($sp)
+sw $a0, a
+sw $a1, b
+lw $t0, a
+lw $t1, b
+add $t2, $t0, $t1
+move $v0, $t2
+j L0
+L0:
+lw $ra, 0($sp)
+addiu $sp, $sp, 4
+jr $ra
+main:
+li $t3, 2
+move $a0, $t3
+li $t4, 3
+move $a1, $t4
+li $t5, 2
+move $v0, $t5
+j L-1
+move $a0, $t-1
+li $v0, 1
+syscall
+li $v0, 10
+syscall
+
+
+========================================
+TESTE: testefuncao1param.g
+========================================
+.data
+x: .word 0
+newline: .asciiz "\n"
+.text
+.globl main
+dobro:
+addiu $sp, $sp, -4
+sw $ra, 0($sp)
+sw $a0, x
+lw $t0, x
+lw $t1, x
+add $t2, $t0, $t1
+move $v0, $t2
+j L0
+L0:
+lw $ra, 0($sp)
+addiu $sp, $sp, 4
+jr $ra
+main:
+li $t3, 4
+move $a0, $t3
+li $t4, 4
+move $v0, $t4
+j L-1
+move $a0, $t-1
+li $v0, 1
+syscall
+li $v0, 10
+syscall
+
+
+========================================
+TESTE: testefuncaocomarg.g
+========================================
+Arquivo não encontrado.
+
+
+========================================
+TESTE: testefuncaosemarg.g
+========================================
+Arquivo não encontrado.
+
+
+========================================
+TESTE: testefuncaosemparam.g
+========================================
+.data
+newline: .asciiz "\n"
+.text
+.globl main
+soma:
+addiu $sp, $sp, -4
+sw $ra, 0($sp)
+li $t0, 10
+move $v0, $t0
+j L0
+L0:
+lw $ra, 0($sp)
+addiu $sp, $sp, 4
+jr $ra
+main:
+move $v0, $t-1
+j L-1
+li $v0, 10
+syscall
+
+
+========================================
+TESTE: testefuncaovetor.g
+========================================
+.data
+v: .word 0
+newline: .asciiz "\n"
+.text
+.globl main
+imprime:
+addiu $sp, $sp, -4
+sw $ra, 0($sp)
+move $s0, $a0
+li $t0, 0
+move $v0, $t0
+j L0
+L0:
+lw $ra, 0($sp)
+addiu $sp, $sp, 4
+jr $ra
+main:
+li $t1, 2
+li $t2, 1
+sll $t2, $t2, 2
+la $t3, v
+add $t3, $t3, $t2
+sw $t1, 0($t3)
+la $t4, v
+move $a0, $t4
+lw $t5, v
+move $v0, $t5
+j L-1
+li $v0, 10
+syscall
+
+
+========================================
+TESTE: testeindice.g
+========================================
+.data
+v: .space 40
+i: .word 0
+newline: .asciiz "\n"
+.text
+.globl main
+main:
+li $t0, 3
+sw $t0, i
+li $t1, 7
+lw $t2, i
+li $t3, 1
+add $t4, $t2, $t3
+sll $t4, $t4, 2
+la $t5, v
+add $t5, $t5, $t4
+sw $t1, 0($t5)
+li $v0, 10
+syscall
+
+
+========================================
+TESTE: testeleituravetor.g
+========================================
+.data
+v: .space 20
+newline: .asciiz "\n"
+.text
+.globl main
+main:
+li $t0, 2
+li $v0, 5
+syscall
+sll $t0, $t0, 2
+la $t1, v
+add $t1, $t1, $t0
+sw $v0, 0($t1)
+li $v0, 10
+syscall
+
+
+========================================
+TESTE: testevetor.g
+========================================
+.data
+v: .space 40
+newline: .asciiz "\n"
+.text
+.globl main
+main:
+li $v0, 10
+syscall
+
+

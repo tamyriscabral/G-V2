@@ -1,0 +1,192 @@
+========================================
+ARQUIVO: meuteste.g
+========================================
+principal {
+    {
+        escreva 5;
+    }
+}
+
+
+========================================
+ARQUIVO: testeacessovetor.g
+========================================
+global [
+    v[10] : int;
+]
+
+principal {
+    v[2] = 5;
+}
+
+
+========================================
+ARQUIVO: testecompleto.g
+========================================
+global [
+    dados[10] : int;
+    x,y : int;
+]
+
+funcao [
+    soma(a : int, b : int) : int {
+        retorne a+b;
+    }
+
+    dobro(x : int) : int {
+        retorne x+x;
+    }
+]
+
+principal {
+
+    x = 5;
+    y = 10;
+
+    dados[0] = soma(x,y);
+
+    escreva dados[0];
+    novalinha;
+
+    escreva dobro(7);
+    novalinha;
+}
+
+
+========================================
+ARQUIVO: testeescritavetor.g
+========================================
+global [
+    v[5] : int;
+]
+
+principal {
+    v[0] = 42;
+    escreva v[0];
+}
+
+
+========================================
+ARQUIVO: testefuncao+param.g
+========================================
+funcao [
+    soma(a : int, b : int) : int {
+        retorne a + b;
+    }
+]
+principal {
+    escreva soma(2, 3);
+}
+
+
+========================================
+ARQUIVO: testefuncao1param.g
+========================================
+funcao [
+    dobro(x : int) : int {
+        retorne x + x;
+    }
+]
+
+principal {
+    escreva dobro(4);
+}
+
+
+========================================
+ARQUIVO: testefuncaocomargm.g
+========================================
+funcao [
+    soma(a : int, b : int) : int {
+        retorne a + b;
+    }
+]
+
+principal {
+    escreva soma(2,3);
+}
+
+
+
+========================================
+ARQUIVO: testefuncaosemargm.g
+========================================
+funcao [
+    valor() : int {
+        retorne 5;
+    }
+]
+
+principal {
+    escreva valor();
+}
+
+
+========================================
+ARQUIVO: testefuncaosemparam.g
+========================================
+funcao [
+    soma() : int {
+        retorne 10;
+    }
+]
+
+principal {
+    soma();
+}
+
+
+========================================
+ARQUIVO: testefuncaovetor.g
+========================================
+funcao [
+    imprime(v[] : int) : int {
+        retorne 0;
+    }
+]
+
+principal [ v[10] : int;]{
+   
+    v[1] = 2;
+    imprime(v);
+}
+
+
+========================================
+ARQUIVO: testeindice.g
+========================================
+global [
+    v[10] : int;
+    i : int;
+]
+
+principal {
+    i = 3;
+    v[i+1] = 7;
+}
+
+
+========================================
+ARQUIVO: testeleituravetor.g
+========================================
+global [
+    v[5] : int;
+]
+
+principal {
+    leia v[2];
+}
+
+
+========================================
+ARQUIVO: testevetor.g
+========================================
+global [
+    v[10] : int;
+]
+
+principal {
+    ;
+}
+
+

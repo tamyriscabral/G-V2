@@ -1,0 +1,5 @@
+principal {
+    {
+        escreva 5;
+    }
+}

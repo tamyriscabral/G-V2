@@ -1,0 +1,25 @@
+# Executável
+g-v2
+
+# Arquivos gerados pelo Bison
+g-v2.tab.c
+g-v2.tab.h
+g-v2.output
+
+# Arquivos gerados pelo Flex
+lex.yy.c
+
+# Arquivos temporários
+*.o
+*.out
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# PDFs de roteiro do trabalho e afins
+*.pdf
+
+# Arquivos duplicados para explicação de código
+g-v2-comentado.l
+g-v2-comentado.y

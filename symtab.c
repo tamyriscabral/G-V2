@@ -3,6 +3,7 @@
 #include <string.h>
 #include "symtab.h"
 
+
 // Função para iniciar a pilha de escopos
 void iniciar_pilha(ScopeStack *pilha) {
     pilha->topo = NULL;
@@ -44,13 +45,12 @@ void desempilhar_escopo(ScopeStack *pilha) {
     free(escopo);
 }
 
-// Função para buscar variável **apenas** no escopo atual
+// Busca apenas no escopo atual
 Symbol *buscar_no_escopo_atual(ScopeStack *pilha, const char *nome) {
-    if (!pilha->topo) return NULL;
-
+    if (!pilha || !pilha->topo) return NULL;
+    
     Symbol *s = pilha->topo->simbolos;
     while (s) {
-        // Compara o nome do símbolo com o nome buscado
         if (strcmp(s->nome, nome) == 0) {
             return s;
         }
@@ -59,27 +59,43 @@ Symbol *buscar_no_escopo_atual(ScopeStack *pilha, const char *nome) {
     return NULL;
 }
 
-// Função para buscar variável em **todos** os escopos
-Symbol *buscar_na_pilha(ScopeStack *pilha, const char *nome) {
-    Scope *escopo = pilha->topo; // Começa no escopo mais interno
-
-    // Busca em loop
-    while (escopo) {
-        Symbol *s = escopo->simbolos;
-        while (s) {
-            if (strcmp(s->nome, nome) == 0) {
-                return s;
-            }
-            s = s->prox;
-        }
+// Busca apenas no escopo global (escopo 0)
+Symbol *buscar_global(ScopeStack *pilha, const char *nome) {
+    if (!pilha || !pilha->topo) return NULL;
+    
+    Scope *escopo = pilha->topo;
+    while (escopo->prox) {  // Navega até o primeiro
         escopo = escopo->prox;
     }
+    
+    Symbol *s = escopo->simbolos;
+    while (s) {
+        if (strcmp(s->nome, nome) == 0) {
+            return s;
+        }
+        s = s->prox;
+    }
+    return NULL;
+}
 
+Symbol *buscar_simbolo(ScopeStack *pilha, const char *nome) {
+    if (!pilha || !pilha->topo) return NULL;
+
+    Scope *escopo = pilha->topo;
+    while (escopo != NULL) {
+        Symbol *s = escopo->simbolos;
+        while (s) {
+            if (strcmp(s->nome, nome) == 0)
+                return s;  // retorna o primeiro encontrado (mais interno)
+            s = s->prox;
+        }
+        escopo = escopo->prox;  // sobe para o escopo externo
+    }
     return NULL;
 }
 
 // Função para inserir uma variável no escopo atual
-int inserir_simbolo(ScopeStack *pilha, const char *nome, TipoSimbolo tipo, int linha) {
+int inserir_simbolo(ScopeStack *pilha, const char *nome, TipoSimbolo tipo, int linha, int escopo, int parametro){
     if (!pilha->topo) return 0; // Evita inserir sem escopo ativo
 
     // Evita redeclaração no mesmo escopo
@@ -98,10 +114,32 @@ int inserir_simbolo(ScopeStack *pilha, const char *nome, TipoSimbolo tipo, int l
     novo->nome = strdup(nome);
     novo->tipo = tipo;
     novo->linha = linha;
-    
+    novo->eh_vetor = 0;
+    novo->tamanho = 0;
+    novo->escopo = escopo;
+    novo->parametro = parametro;
     // Insere a variável no início da lista encadadeada
     novo->prox = pilha->topo->simbolos;
     pilha->topo->simbolos = novo;
+
+    printf("Inserido símbolo: %s (tipo: %d, escopo: %d, parâm: %d)\n", nome, tipo, escopo, parametro); 
+    return 1;
+}
+
+int inserir_simbolo_vetor(ScopeStack *pilha, const char *nome,
+                            TipoSimbolo tipo, int tamanho, int linha, int escopo, int parametro) {
+    Symbol *s = malloc(sizeof(Symbol));
+    s->nome     = strdup(nome);
+    s->tipo     = tipo;
+    s->eh_vetor = 1;
+    s->tamanho  = tamanho;
+    s->linha    = linha;
+    s->escopo = 0;
+    s->parametro = parametro;
+    s->prox     = pilha->topo->simbolos;  
+    pilha->topo->simbolos = s;
+
+    printf("Inserido símbolo: %s (tipo: %d, escopo: %d, parâm: %d)\n", nome, tipo, escopo, parametro);
 
     return 1;
 }

@@ -8,6 +8,6 @@
 #include "symtab.h"
 
 // Recebe a raiz da AST e executa toda a análise semântica
-void analisar_semantico(AST *raiz);
+void analisar_semantico(AST *raiz, ScopeStack *pilha);
 
 #endif

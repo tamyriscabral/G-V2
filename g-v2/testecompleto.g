@@ -1,6 +1,7 @@
 global [
     dados[10] : int;
-    x,y : int;
+    x : int;
+    y: int;
 ]
 
 funcao [
@@ -14,10 +15,8 @@ funcao [
 ]
 
 principal {
-
     x = 5;
     y = 10;
-
     dados[0] = soma(x,y);
 
     escreva dados[0];

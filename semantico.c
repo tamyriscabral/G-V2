@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "semantico.h"
+static int escopo = -1;
 
 // Função auxiliar para apontar erros semânticos
 static void erro(const char *msg, int linha) {
@@ -20,7 +21,6 @@ static void analisar_lista(AST *no, ScopeStack *pilha) {
         atual = atual->irmao;
     }
 }
-
 // Função principal que percorre a AST
 // É recursiva e retorna o tipo do nó analisado
 static TipoSimbolo analisar(AST *no, ScopeStack *pilha) {
@@ -29,8 +29,10 @@ static TipoSimbolo analisar(AST *no, ScopeStack *pilha) {
     switch (no->tipo) {
         // Inicio da análise semântica (raiz)
         case AST_PROGRAMA: {
-            return analisar(no->filho1, pilha); 
-        }
+            analisar(no->filho1, pilha); // DeclVarGlobais
+            analisar_lista(no->filho2, pilha); // DeclFunc
+            analisar(no->filho3, pilha); // principal
+               }
         
         // Criação da pilha de escopos no contexto de blocos
         // (garante que variáveis tenham visibilidade 
@@ -39,29 +41,43 @@ static TipoSimbolo analisar(AST *no, ScopeStack *pilha) {
             empilhar_escopo(pilha);
             analisar(no->filho1, pilha); // VARSECTION
             analisar_lista(no->filho2, pilha); // comandos// comandos
-            desempilhar_escopo(pilha);
+            //desempilhar_escopo(pilha);
             break;
         } 
 
         case AST_VARSECTION: {
-            analisar(no->filho1, pilha);
-            break;
+            escopo++;
+            AST *decl = no->filho1;
+            while (decl != NULL) {
+                analisar(decl, pilha);  // Chama AST_DECLVAR
+                decl = decl->irmao;
+            }
+            return TIPO_INT;
         }
+
 
         // Análise de declaração de variáveis
         // (comunica com a tabela de símbolos)
         case AST_DECLVAR: {
-            // guarda o tipo da variável
+            if (!no->filho2) return TIPO_INT;
             TipoSimbolo tipo = analisar(no->filho2, pilha);
-
+            
+            AST *id = no->filho1;
             // Percorre a lista de identificadores
-            for (AST *id = no->filho1; id != NULL; id = id->irmao) {
+            while (id != NULL) {
                 if (buscar_no_escopo_atual(pilha, id->lexema)) {
                     erro("Variavel ja declarada", id->linha);
                 }
-                inserir_simbolo(pilha, id->lexema, tipo, id->linha);
+                if (id->tipo == AST_DECL_VETOR) {
+                    int tamanho = atoi(id->filho1->lexema); 
+                    inserir_simbolo_vetor(pilha, id->lexema, tipo, tamanho, id->linha, escopo, 0);
+                } else {
+                    inserir_simbolo(pilha, id->lexema, tipo, id->linha, escopo, 0);
+                }
+
+                id =  id->irmao;
             }
-            break;
+            return TIPO_INT;
         }
 
         // Converte string para enum interno
@@ -72,11 +88,6 @@ static TipoSimbolo analisar(AST *no, ScopeStack *pilha) {
                 return TIPO_CAR; 
         }
             
-        case AST_LISTACOMANDO: {
-            analisar(no->filho1, pilha);
-            break;
-        }
-            
         case AST_COMANDO_VAZIO: {
             break;
         }
@@ -84,7 +95,7 @@ static TipoSimbolo analisar(AST *no, ScopeStack *pilha) {
         // Verifica se a variável foi declarada
         case AST_LEIA: {
             AST *id = no->filho1;
-            if (!buscar_na_pilha(pilha, id->lexema)) {
+            if (!buscar_simbolo(pilha, id->lexema)) {
                 erro("Variavel nao declarada", id->linha);
             }
             break;
@@ -126,33 +137,33 @@ static TipoSimbolo analisar(AST *no, ScopeStack *pilha) {
 
         // Analisa atribuições
         case AST_ATRIB: {
-            AST *id = no->filho1;
-
-            // Verifica se a variável existe, buscando na pilha
-            Symbol *s = buscar_na_pilha(pilha, id->lexema);
-
+            AST *lval = no->filho1;
+            Symbol *s = buscar_simbolo(pilha, lval->lexema);
             if (!s) {
-                erro("Variavel nao declarada", id->linha);
+                erro("Variavel nao declarada", lval->linha);
             }
 
-            // Verifica o tipo da variável
-            // para evitar "int = car"
-            TipoSimbolo t = analisar(no->filho2, pilha);
+            // Se for acesso a vetor, valida o índice
+            if (lval->tipo == AST_ACESS_VETOR) {
+                TipoSimbolo tidx = analisar(lval->filho1, pilha);
+                if (tidx != TIPO_INT)
+                    erro("Indice de vetor deve ser INT", lval->linha);
+            }
 
+            TipoSimbolo t = analisar(no->filho2, pilha);
             if (s->tipo != t) {
                 erro("Tipos incompativeis", no->linha);
             }
-
             return s->tipo;
         }
-
         // Analisa declaração de variáveis
         case AST_IDENT: {
-            Symbol *s = buscar_na_pilha(pilha, no->lexema);
+            Symbol *s = buscar_simbolo(pilha, no->lexema);
             if (!s) {
                 erro("Variavel nao declarada", no->linha);
+            } else {
             }
-            return s->tipo;
+            break;
         }
 
         // Define o tipo das constantes
@@ -222,22 +233,72 @@ static TipoSimbolo analisar(AST *no, ScopeStack *pilha) {
             
             break;
         }
-    }
 
-    // Permite percorrer listas de comandos e declarações
-    if (no->irmao) {
-        analisar(no->irmao, pilha);
-    }
+        case AST_ACESS_VETOR: {
+            Symbol *s = buscar_simbolo(pilha, no->lexema);
+            if (!s) {
+                erro("Variavel nao declarada", no->linha);
+            }
+            TipoSimbolo tidx = analisar(no->filho1, pilha);
+            if (tidx != TIPO_INT) {
+                erro("Indice de vetor deve ser INT", no->linha);
+            }
+            return s->tipo; // tipo do elemento do vetor
+        }
         
+        case AST_DECL_VETOR: {
+            Symbol *s = buscar_simbolo(pilha, no->lexema);
+            if (!s) {
+                erro("Variavel nao declarada", no->linha);
+            }
+            TipoSimbolo tidx = analisar(no->filho1, pilha);
+            if (tidx != TIPO_INT) {
+                erro("Indice de vetor deve ser INT", no->linha);
+            }
+            return s->tipo;
+        }
+
+        case AST_PARAM: {
+            TipoSimbolo tipo = analisar(no->filho2, pilha);
+            if (buscar_no_escopo_atual(pilha, no->lexema)) {
+                erro("Parametro ja declarado", no->linha);
+            }
+        
+            inserir_simbolo(pilha, no->lexema, tipo, no->linha,  escopo, 1);
+            break;
+        }
+
+        case AST_PARAM_VETOR: {
+            // filho1 = AST_IDENT (nome do parâmetro)
+            // filho2 = AST_TIPO (tipo do parâmetro)
+            TipoSimbolo tipo = analisar(no->filho2, pilha);
+            
+            AST *id = no->filho1;
+            if (buscar_no_escopo_atual(pilha, id->lexema)) {
+                erro("Parametro vetor ja declarado", id->linha);
+            }
+            inserir_simbolo_vetor(pilha, id->lexema, tipo, 0, id->linha, escopo, 1); // tamanho 0 para parâmetro vetor
+            break;
+        }
+
+        case AST_FUNCAO: {
+            escopo++;
+            analisar_lista(no->filho2, pilha);
+            analisar(no->filho3, pilha);
+            break;
+        }
+
+
+    }
     return TIPO_INT;
+
 }
 
 // Função que inicializa a pilha de escopos
-void analisar_semantico(AST *raiz) {
-    ScopeStack pilha;
-    iniciar_pilha(&pilha);  // escopo global
+void analisar_semantico(AST *raiz, ScopeStack *pilha) {
 
-    analisar(raiz, &pilha);
-
-    liberar_pilha(&pilha);  // libera memória da tabela de símbolos
+    empilhar_escopo(pilha);
+    analisar(raiz->filho1, pilha);
+    analisar_lista(raiz->filho2, pilha);
+    analisar(raiz->filho3, pilha);
 }

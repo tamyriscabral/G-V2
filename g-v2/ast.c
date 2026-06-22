@@ -8,7 +8,7 @@
 // A AST abstrai a árvore de derivação, mantendo apenas a estrutura semântica 
 // relevante para fases posteriores.
 
-AST *criar_no(AstKind tipo, const char *lexema, int linha,
+AST *criar_no(AstKind tipo, const char *lexema, int linha, int escopo, 
               AST *filho1, AST *filho2, AST *filho3) {
     
     // Alocação de memória dinâmica
@@ -24,6 +24,9 @@ AST *criar_no(AstKind tipo, const char *lexema, int linha,
     
     // Armazena o lexema associado ao nó (e.g. identificadores, constantes)
     no->lexema = lexema ? strdup(lexema) : NULL;
+
+    //Guarda o escopo para diferenciar variáveis globais e locais
+    no->escopo = escopo;
 
     // Lógica de "filhos" para mapear os componentes da gramática
     // e.g. AST_SE: filho1 = condição, filho2 = bloco "THEN", filho3 = bloco "ELSE"
@@ -73,6 +76,13 @@ static const char *nome_tipo_ast(AstKind tipo) {
         case AST_INTCONST: return "AST_INTCONST";
         case AST_CARCONST: return "AST_CARCONST";
         case AST_STRING: return "AST_STRING";
+        case AST_DECL_VETOR: return "AST_DECL_VETOR";
+        case AST_PARAM: return "AST_PARAM";
+        case AST_PARAM_VETOR: return "AST_PARAM_VETOR"; 
+        case AST_ACESS_VETOR: return "AST_ACESS_VETOR";
+        case AST_FUNCAO: return "AST_FUNCAO";
+        case AST_CHAMADA_FUNC: return "AST_CHAMADA_FUNC";
+        case AST_RETORNE: return "AST_RETORNE";
         default: return "AST_DESCONHECIDO";
     }
 }

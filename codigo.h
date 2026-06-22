@@ -8,6 +8,6 @@
 #include "symtab.h"
 
 // Função de entrada da fase de geração de código em MIPS
-void gerar_codigo(AST *raiz);
+void gerar_codigo(AST *raiz, ScopeStack *pilha);
 
 #endif

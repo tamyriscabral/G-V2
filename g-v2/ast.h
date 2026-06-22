@@ -50,6 +50,7 @@ typedef struct ast {
     AstKind tipo; // Define o papel sintático do nó
     char *lexema; // Armazena o valor textual associado ao nó
     int linha;    // Informação de localização no código fonte.
+    int escopo; //Separa variáveis locais e globais
     
     // Representa os componentes da construção sitática
     struct ast *filho1; 
@@ -61,7 +62,7 @@ typedef struct ast {
 } AST;
 
 // Função principal que rege a criação de nós da AST
-AST *criar_no(AstKind tipo, const char *lexema, int linha,
+AST *criar_no(AstKind tipo, const char *lexema, int linha, int escopo, 
               AST *filho1, AST *filho2, AST *filho3);
 
 // Função que encadeia nós como lista 

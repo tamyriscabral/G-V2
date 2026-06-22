@@ -23,7 +23,6 @@ typedef enum {
     AST_VARSECTION,
     AST_DECLVAR,
     AST_TIPO,
-    AST_LISTACOMANDO,
     AST_COMANDO_VAZIO,
     AST_LEIA,
     AST_ESCREVA,
@@ -39,10 +38,10 @@ typedef enum {
     AST_RETORNE,
     AST_CHAMADA_FUNC,
     AST_FUNCAO,
-    AST_PARAM,
     AST_DECL_VETOR,
+    AST_PARAM,
     AST_PARAM_VETOR,
-    AST_ATRIB_VETOR
+    AST_ACESS_VETOR
 } AstKind;
 
 // Estrutura para representar um nó da AST
@@ -51,6 +50,7 @@ typedef struct ast {
     AstKind tipo; // Define o papel sintático do nó
     char *lexema; // Armazena o valor textual associado ao nó
     int linha;    // Informação de localização no código fonte.
+    int escopo; //Separa variáveis locais e globais
     
     // Representa os componentes da construção sitática
     struct ast *filho1; 
@@ -62,7 +62,7 @@ typedef struct ast {
 } AST;
 
 // Função principal que rege a criação de nós da AST
-AST *criar_no(AstKind tipo, const char *lexema, int linha,
+AST *criar_no(AstKind tipo, const char *lexema, int linha, int escopo, 
               AST *filho1, AST *filho2, AST *filho3);
 
 // Função que encadeia nós como lista 

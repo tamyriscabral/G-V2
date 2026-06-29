@@ -4,12 +4,13 @@
 #include "symtab.h"
 
 
-// Função para iniciar a pilha de escopos
+// Inicializa a pilha de escopos vazia.
 void iniciar_pilha(ScopeStack *pilha) {
     pilha->topo = NULL;
+    pilha->base = NULL;
 }
 
-// Função para criar um novo escopo
+// Cria um novo escopo e o coloca no topo da pilha.
 void empilhar_escopo(ScopeStack *pilha) {
     Scope *novo = (Scope *) malloc(sizeof(Scope));
     if (!novo) {
@@ -23,9 +24,12 @@ void empilhar_escopo(ScopeStack *pilha) {
     // Empilha o novo escopo no topo da pilha
     novo->prox = pilha->topo;
     pilha->topo = novo;
+    if (!pilha->base) {
+        pilha->base = novo;
+    }
 }
 
-// Função que remove o escopo atual (ao sair de um bloco)
+// Remove o escopo atual e libera todos os seus símbolos.
 void desempilhar_escopo(ScopeStack *pilha) {
     if (!pilha->topo) return;
 
@@ -42,10 +46,13 @@ void desempilhar_escopo(ScopeStack *pilha) {
 
     // Remoção e liberação de memória
     pilha->topo = escopo->prox;
+    if (pilha->base == escopo) {
+        pilha->base = NULL;
+    }
     free(escopo);
 }
 
-// Busca apenas no escopo atual
+// Procura um identificador apenas no escopo corrente.
 Symbol *buscar_no_escopo_atual(ScopeStack *pilha, const char *nome) {
     if (!pilha || !pilha->topo) return NULL;
     
@@ -59,7 +66,7 @@ Symbol *buscar_no_escopo_atual(ScopeStack *pilha, const char *nome) {
     return NULL;
 }
 
-// Busca apenas no escopo global (escopo 0)
+// Procura um identificador exclusivamente no escopo global.
 Symbol *buscar_global(ScopeStack *pilha, const char *nome) {
     if (!pilha || !pilha->topo) return NULL;
     
@@ -78,6 +85,7 @@ Symbol *buscar_global(ScopeStack *pilha, const char *nome) {
     return NULL;
 }
 
+// Procura um símbolo do escopo mais interno para o mais externo.
 Symbol *buscar_simbolo(ScopeStack *pilha, const char *nome) {
     if (!pilha || !pilha->topo) return NULL;
 
@@ -94,7 +102,7 @@ Symbol *buscar_simbolo(ScopeStack *pilha, const char *nome) {
     return NULL;
 }
 
-// Função para inserir uma variável no escopo atual
+// Insere uma variável escalar no escopo atual.
 int inserir_simbolo(ScopeStack *pilha, const char *nome, TipoSimbolo tipo, int linha, int escopo, int parametro){
     if (!pilha->topo) return 0; // Evita inserir sem escopo ativo
 
@@ -109,8 +117,7 @@ int inserir_simbolo(ScopeStack *pilha, const char *nome, TipoSimbolo tipo, int l
         exit(1);
     }
 
-    // Copia no nome da variável para 
-    //evitar problemas com memória temporária
+    // Inicializa todas as informações associadas ao símbolo.
     novo->nome = strdup(nome);
     novo->tipo = tipo;
     novo->linha = linha;
@@ -118,30 +125,46 @@ int inserir_simbolo(ScopeStack *pilha, const char *nome, TipoSimbolo tipo, int l
     novo->tamanho = 0;
     novo->escopo = escopo;
     novo->parametro = parametro;
+    novo->pos = 0;
     // Insere a variável no início da lista encadadeada
     novo->prox = pilha->topo->simbolos;
     pilha->topo->simbolos = novo;
 
-    printf("Inserido símbolo: %s (tipo: %d, escopo: %d, parâm: %d)\n", nome, tipo, escopo, parametro); 
     return 1;
 }
 
+// Insere uma variável do tipo vetor no escopo atual.
 int inserir_simbolo_vetor(ScopeStack *pilha, const char *nome,
                             TipoSimbolo tipo, int tamanho, int linha, int escopo, int parametro) {
+    if (!pilha->topo) return 0;
+
+    if (buscar_no_escopo_atual(pilha, nome) != NULL) {
+        return 0;
+    }
+
     Symbol *s = malloc(sizeof(Symbol));
+    if (!s) {
+        fprintf(stderr, "Erro de alocacao de memoria\n");
+        exit(1);
+    }
+
     s->nome     = strdup(nome);
     s->tipo     = tipo;
     s->eh_vetor = 1;
     s->tamanho  = tamanho;
     s->linha    = linha;
-    s->escopo = 0;
+    s->escopo = escopo;
     s->parametro = parametro;
+    s->pos = 0;
     s->prox     = pilha->topo->simbolos;  
     pilha->topo->simbolos = s;
 
-    printf("Inserido símbolo: %s (tipo: %d, escopo: %d, parâm: %d)\n", nome, tipo, escopo, parametro);
-
     return 1;
+}
+
+// Utiliza a busca padrão de símbolos.
+Symbol *buscar_simbolo_parametros(ScopeStack *pilha, const char *nome) {
+    return buscar_simbolo(pilha, nome);
 }
 
 // Função para liberar a memória de todos os escopos
